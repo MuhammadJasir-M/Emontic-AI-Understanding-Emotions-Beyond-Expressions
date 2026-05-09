@@ -1,0 +1,20 @@
+# Emontic AI v2 — Training Dependencies
+# Optimized for WSL2 / Linux with RTX 4060
+
+# Core Machine Learning & GPU Support
+tensorflow[and-cuda]>=2.18.0
+tensorboard>=2.18.0
+tf-keras
+
+# Array Math & Class Weights/Metrics (dataset.py & evaluate.py)
+numpy>=1.26.0
+scikit-learn>=1.4.0
+
+# Visualization (for saving the confusion matrix in evaluate.py)
+matplotlib>=3.8.0
+
+# Data Retrieval & Image Utilities (from your original list)
+opencv-python-headless>=4.9.0
+Pillow>=10.3.0
+tqdm>=4.66.0
+kagglehub>=0.3.0

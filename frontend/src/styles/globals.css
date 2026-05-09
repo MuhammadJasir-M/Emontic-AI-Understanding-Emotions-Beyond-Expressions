@@ -1,0 +1,392 @@
+/* src/styles/globals.css */
+/* Emontic AI — Neon Dark Theme */
+/* Primary design language: custom CSS variables + glassmorphism */
+/* Tailwind is used only for layout, spacing, and responsive utilities */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme Variables ─────────────────────────────────────────────────────── */
+:root {
+  --bg-base: #0a0a0f;
+  --bg-surface: #11111b;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+
+  --accent-violet: #7c3aed;
+  --accent-violet-light: #a855f7;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-light: #22d3ee;
+
+  --neon-happy: #facc15;
+  --neon-happy-glow: rgba(250, 204, 21, 0.3);
+  --neon-sad: #60a5fa;
+  --neon-sad-glow: rgba(96, 165, 250, 0.3);
+  --neon-angry: #f87171;
+  --neon-angry-glow: rgba(248, 113, 113, 0.3);
+  --neon-neutral: #a3e635;
+  --neon-neutral-glow: rgba(163, 230, 53, 0.3);
+  --neon-disgust: #c084fc;
+  --neon-disgust-glow: rgba(192, 132, 252, 0.3);
+  --neon-fear: #fb923c;
+  --neon-fear-glow: rgba(251, 146, 60, 0.3);
+  --neon-surprise: #2dd4bf;
+  --neon-surprise-glow: rgba(45, 212, 191, 0.3);
+  --neon-uncertain: #94a3b8;
+  --neon-uncertain-glow: rgba(148, 163, 184, 0.2);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-glow: rgba(168, 85, 247, 0.4);
+  --border-active: rgba(168, 85, 247, 0.8);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+/* ── Base Reset ──────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Rajdhani', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ── Aurora Mesh Background ────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Aurora Blobs */
+body::after {
+  content: '';
+  position: fixed;
+  top: -20vh;
+  left: -10vw;
+  width: 70vw;
+  height: 70vh;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+  animation: float-aurora-1 25s ease-in-out infinite alternate;
+}
+
+/* Second Aurora Blob via pseudo-element wrapper or just body element if we had one.
+   Since we only have ::after, we'll use a strong single radial gradient or multiple radials. */
+.aurora-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.aurora-blob-1, .aurora-blob-2 {
+  position: absolute;
+  filter: blur(90px);
+  border-radius: 50%;
+  animation: float-aurora 20s ease-in-out infinite alternate;
+  opacity: 0.5;
+}
+
+.aurora-blob-1 {
+  top: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vh;
+  background: rgba(6, 182, 212, 0.15); /* cyan */
+  animation-delay: -5s;
+}
+
+.aurora-blob-2 {
+  bottom: -20%;
+  left: 10%;
+  width: 50vw;
+  height: 50vh;
+  background: rgba(168, 85, 247, 0.15); /* violet */
+  animation-direction: alternate-reverse;
+}
+
+@keyframes float-aurora {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-50px, 80px) scale(1.1); }
+  66% { transform: translate(50px, -40px) scale(0.9); }
+  100% { transform: translate(-20px, 20px) scale(1.05); }
+}
+
+@keyframes float-aurora-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10vw, 10vh) scale(1.2); }
+  100% { transform: translate(-5vw, 5vh) scale(0.9); }
+}
+
+/* ── Glassmorphism Card ──────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(22, 22, 31, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.glass-card:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 12px 40px rgba(124, 58, 237, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ── Neon Glow Button ────────────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-violet), var(--accent-violet-light));
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 36px rgba(168, 85, 247, 0.55);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.3);
+}
+
+/* ── Upload Zone ─────────────────────────────────────────────────────────── */
+.upload-zone {
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 48px 32px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-surface);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-zone::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, transparent, var(--accent-violet), transparent, var(--accent-cyan), transparent);
+  background-size: 300% 300%;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: border-rotate 4s linear infinite;
+}
+
+.upload-zone:hover::before,
+.upload-zone.drag-active::before {
+  opacity: 1;
+}
+
+@keyframes border-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.upload-zone:hover {
+  border-color: transparent;
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.upload-zone.drag-active {
+  border-color: transparent;
+  background: rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 60px rgba(168, 85, 247, 0.15);
+}
+
+.upload-zone.has-preview {
+  padding: 24px;
+  background: transparent;
+}
+
+.upload-zone.is-loading {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ── Neon Badge ──────────────────────────────────────────────────────────── */
+.emotion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 28px;
+  border-radius: var(--radius-xl);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  transition: all 0.3s ease;
+}
+
+/* ── Confidence Bar ──────────────────────────────────────────────────────── */
+.confidence-track {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan));
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+/* ── Probability Bar ─────────────────────────────────────────────────────── */
+.prob-track {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.prob-fill {
+  height: 100%;
+  border-radius: 99px;
+  opacity: 0.8;
+}
+
+/* ── Navbar ──────────────────────────────────────────────────────────────── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── Face Overlay Canvas ─────────────────────────────────────────────────── */
+.face-overlay-container {
+  position: relative;
+  display: inline-block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.face-overlay-container img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.face-overlay-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  border-top-color: var(--accent-violet-light);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Pulse & Gradient Shift animation ────────────────────────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; filter: brightness(1.2); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(124, 58, 237, 0.3);
+  color: var(--text-primary);
+}

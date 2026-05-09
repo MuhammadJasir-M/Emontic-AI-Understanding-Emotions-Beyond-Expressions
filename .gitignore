@@ -1,0 +1,84 @@
+# =======================
+# Emontic AI .gitignore
+# =======================
+
+# -----------------------
+# Node / Frontend (React/Vite)
+# -----------------------
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -----------------------
+# Python / Backend (FastAPI)
+# -----------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+backend/models/
+
+# --------------------------
+# Virtual Environments
+# --------------------------
+.env
+.env.local
+.env.*.local
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ---------------------------
+# Deep Learning / Training
+# ---------------------------
+# Datasets
+data/
+
+# Training Logs & Checkpoints
+training/logs/
+training/checkpoints/
+
+# Exported Models
+saved_model/
+*.h5
+*.keras
+*.hdf5
+*.pb
+*.tflite
+*.pt
+*.pth
+*.onnx
+
+# ---------------------------
+# IDEs and OS
+# ---------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
