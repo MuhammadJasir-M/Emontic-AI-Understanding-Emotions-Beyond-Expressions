@@ -1,0 +1,35 @@
+{
+  "architecture": "v2s",
+  "num_classes": 7,
+  "labels": [
+    "Angry",
+    "Disgust",
+    "Fear",
+    "Happy",
+    "Neutral",
+    "Sad",
+    "Surprise"
+  ],
+  "temperature": 9.999996,
+  "ece_before": 0.020079,
+  "ece_after": 0.038958,
+  "per_class_ece_before": {
+    "Angry": 0.0,
+    "Disgust": 0.0,
+    "Fear": 0.0,
+    "Happy": 0.203687,
+    "Neutral": 0.285081,
+    "Sad": 0.763807,
+    "Surprise": 0.312447
+  },
+  "per_class_ece_after": {
+    "Angry": 0.0,
+    "Disgust": 0.0,
+    "Fear": 0.0,
+    "Happy": 0.148442,
+    "Neutral": 0.350674,
+    "Sad": 0.849238,
+    "Surprise": 0.3528
+  },
+  "validation_samples": 16
+}

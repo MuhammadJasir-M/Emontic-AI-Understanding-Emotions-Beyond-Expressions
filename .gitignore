@@ -39,6 +39,7 @@ wheels/
 .pytest_cache/
 backend/models/
 backend/uploads/
+*.db
 
 # --------------------------
 # Virtual Environments
@@ -63,7 +64,9 @@ training/logs/
 training/checkpoints/
 
 # Exported Models
-saved_model/
+saved_model/*
+!saved_model/*.md
+!saved_model/*.json
 *.h5
 *.keras
 *.hdf5

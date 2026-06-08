@@ -1,0 +1,67 @@
+{
+  "architecture": "v2s",
+  "dataset": "rafdb_test",
+  "total_samples": 16,
+  "overall_accuracy": 0.1875,
+  "flag_threshold_gap": 0.1,
+  "per_class": {
+    "Angry": {
+      "count": 0,
+      "correct": 0,
+      "accuracy": null,
+      "gap": null,
+      "flagged": false,
+      "status": "N/A"
+    },
+    "Disgust": {
+      "count": 2,
+      "correct": 0,
+      "accuracy": 0.0,
+      "gap": -0.1875,
+      "flagged": true
+    },
+    "Fear": {
+      "count": 0,
+      "correct": 0,
+      "accuracy": null,
+      "gap": null,
+      "flagged": false,
+      "status": "N/A"
+    },
+    "Happy": {
+      "count": 7,
+      "correct": 0,
+      "accuracy": 0.0,
+      "gap": -0.1875,
+      "flagged": true
+    },
+    "Neutral": {
+      "count": 0,
+      "correct": 0,
+      "accuracy": null,
+      "gap": null,
+      "flagged": false,
+      "status": "N/A"
+    },
+    "Sad": {
+      "count": 3,
+      "correct": 3,
+      "accuracy": 1.0,
+      "gap": 0.8125,
+      "flagged": false
+    },
+    "Surprise": {
+      "count": 4,
+      "correct": 0,
+      "accuracy": 0.0,
+      "gap": -0.1875,
+      "flagged": true
+    }
+  },
+  "flagged_classes": [
+    "Disgust",
+    "Happy",
+    "Surprise"
+  ],
+  "recommendation": "Classes Disgust, Happy, Surprise need attention. Consider targeted augmentation, class-specific loss weighting, or additional training data for these classes."
+}

@@ -20,9 +20,12 @@ Emontic AI is a full-stack deep learning application that detects and classifies
 
 Emontic AI bridges the gap between deep learning research and ultra-low latency deployment.
 
-- **The Neural Network**: A customized **EfficientNetV2-S** backbone integrated with **Position-Aware Multi-Head Self-Attention**. This allows the network to natively focus on critical micro-expressions independently of global facial rotation. The ONNX export dynamically injects a Softmax layer to guarantee calibrated probabilities natively, bypassing manual temperature scaling on the backend server.
-- **The Backend**: **100% TensorFlow-Free** at runtime. By migrating the inference engine to `onnxruntime-gpu`, the backend achieves sub-30ms inference times. The **Multi-Stage OpenCV Haar Cascade** pipeline dynamically cascades across states (`Frontal → Right Profile → Flipped Left Profile`) to track faces from virtually any angle instantly. A secondary RetinaFace-based detector is available for high-precision upload analysis with native eye-landmark alignment.
-- **The Frontend**: Features immersive glassmorphism UI with fluid `framer-motion` micro-animations, built on **React 18 + Vite 5 + TailwindCSS 3**. The "Live Emotion" module employs an adaptive, self-regulating webcam capture loop that fires the next request as soon as the previous one completes (with a 150ms minimum gap), streaming uncompressed 1.0 quality JPEGs to preserve micro-expressions for peak accuracy.
+- **Architecture:** EfficientNetV2-S backbone integrated with Position-Aware Multi-Head Self-Attention to focus on facial features independent of global rotation.
+- **Optimization Strategy:** ArcFace Additive Angular Margin Loss enforces a 0.3 radian class separation margin, calibrating logits without post-hoc temperature scaling.
+- **Inference Engine:** ONNX Runtime (`onnxruntime-gpu`) bypasses TensorFlow overhead, facilitating low-latency inference.
+- **Face Detection:** Multi-stage OpenCV Haar Cascade fallback pipeline (`Frontal → Profiles`) with optional RetinaFace for high-precision eye-landmark alignment.
+- **Backend:** FastAPI service operating independently of the training stack, enabling modular deployment.
+- **Frontend:** React 18 frontend utilizing an adaptive fire-when-ready capture loop, streaming uncompressed JPEGs to preserve detail for the model.
 
 ---
 
@@ -41,7 +44,7 @@ Emontic AI bridges the gap between deep learning research and ultra-low latency 
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -70,13 +73,13 @@ Emontic AI bridges the gap between deep learning research and ultra-low latency 
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                    Inference Pipeline                     │  │
 │  │                                                           │  │
-│  │  Image → Haar Cascade Detection → Eye Alignment → Crop   │  │
+│  │  Image → Haar Cascade Detection → Eye Alignment → Crop    │  │
 │  │  → Resize 224×224 → EfficientNetV2-S + Attention → Result │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Model Architecture
+### Neural Network Diagram
 
 The neural network is a custom **EfficientNetV2-S** backbone enhanced with a **position-aware multi-head self-attention** mechanism:
 
@@ -203,6 +206,70 @@ emontic-ai/
 └── .gitignore                  # Git exclusion rules
 ```
 
+## 📈 Benchmark Results
+
+The model was evaluated against the rigorous RAF-DB test split (3,008 images). The implementation of Inverse Class-Weighting combined with the ArcFace Margin addresses the inherent class imbalance present in facial expression datasets.
+
+| Metric | Score |
+|---|---|
+| **Overall Accuracy** | **76.56%** |
+| **Weighted F1-Score** | **77.85%** |
+| **Macro F1-Score** | **68.68%** |
+
+---
+
+### Per-Class Evaluation (RAF-DB Test Set)
+
+| Emotion | F1-Score | Precision | Recall | Support |
+|---------|----------|-----------|--------|---------|
+| **Happy** | 89.01% | 97.29% | 82.02% | 1185 |
+| **Surprise** | 78.71% | 75.63% | 82.06% | 329 |
+| **Sad** | 75.57% | 75.41% | 75.73% | 478 |
+| **Neutral** | 71.85% | 76.50% | 67.74% | 620 |
+| **Angry** | 64.57% | 60.10% | 69.75% | 162 |
+| **Fear** | 52.32% | 45.91% | 60.81% | 74 |
+| **Disgust** | 48.69% | 35.90% | 75.62% | 160 |
+
+---
+
+## 🏋️ Training Strategy
+
+The training pipeline implements a **2-stage transfer learning** approach utilizing `mixed_float16` precision:
+
+1. **Stage 1 — Pretrain on AffectNet**
+   - ~280,000 images from AffectNet.
+   - Backbone remains frozen, top 60 layers (block 6) unfrozen.
+   - **Loss**: ArcFace (margin=0.3, scale=30.0) with label smoothing (0.1) to mitigate dataset noise.
+   - Inverse class-weighting applied in the `tf.data` pipeline.
+
+2. **Stage 2 — Finetune on RAF-DB**
+   - ~12,271 images from RAF-DB.
+   - Top 120 layers (block 5 + block 6) unfrozen.
+   - **Loss**: ArcFace with label smoothing dropped to 0.0 to establish firm decision boundaries.
+   - Lower learning rate (`2e-5`) for precise domain adaptation.
+
+### Training Metrics & Results
+
+<p align="center">
+  <img src="assets/metrics/pretrain_frozen_plot.png" width="48%" alt="Pretrain Stage 1 Metrics (Frozen)" />
+  <img src="assets/metrics/pretrain_finetune_plot.png" width="48%" alt="Pretrain Stage 2 Metrics (Finetune)" />
+  <br/>
+  <img src="assets/metrics/finetune_plot.png" width="48%" alt="Finetuning Metrics (RAF-DB)" />
+  <img src="assets/metrics/confusion_matrix_v2s.png" width="48%" alt="Confusion Matrix Heatmap" />
+</p>
+
+### Training Environment
+
+| Component | Specification |
+|-----------|---------------|
+| **GPU** | NVIDIA RTX 4060 (8GB) |
+| **CPU** | `[TODO: Insert CPU model]` |
+| **RAM** | `[TODO: Insert RAM capacity]` |
+| **CUDA Version** | `[TODO: Insert CUDA version]` |
+| **TensorFlow** | `2.21.0` |
+| **Keras** | `3.14.1` |
+| **Python** | `3.11+` |
+| **Duration** | `[TODO: Insert total training duration]` |
 ---
 
 ## 🚀 Quick Start
@@ -220,7 +287,7 @@ git clone https://github.com/MuhammadJasir-M/Emontic-AI-Understanding-Emotions-B
 cd Emontic-AI-Understanding-Emotions-Beyond-Expressions
 ```
 
-### 2. Backend Setup
+### 2. Backend Environment
 
 ```bash
 # Create and activate virtual environment
@@ -235,18 +302,16 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Configure environment
+# Configure environment variables
 cp backend/.env.example backend/.env
-# Edit backend/.env with your database credentials (SQLite fallback works out of the box)
 
 # Start the backend server
 cd backend
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+> **Note**: A SQLite database (`emontic_ai.db`) will automatically initialize if no MySQL credentials are provided in the `.env`.
 
-The server will start at `http://localhost:8000`. On first request, the model is loaded into memory (~2-5 seconds).
-
-### 3. Frontend Setup
+### 3. Frontend Environment
 
 ```bash
 # In a new terminal
@@ -258,34 +323,21 @@ npm install
 # Start the development server
 npm run dev
 ```
-
-The frontend will be available at `http://localhost:5173`.
+Access the interface at `http://localhost:5173`.
 
 ---
 
-## 🔧 Configuration
+## 🔧 Core Configuration
 
-### Backend Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MODEL_PATH` | `models/emontic_ai.onnx` | Path to the ONNX model file |
-| `CONFIDENCE_THRESHOLD` | `0.55` | Minimum confidence to return a prediction (below = "Uncertain") |
-| `TTA_ENABLED` | `true` | Enable Test-Time Augmentation for inference |
-| `DB_HOST` | `localhost` | MySQL host (falls back to SQLite if unavailable) |
-| `DB_USER` | `root` | MySQL username |
-| `DB_PASSWORD` | _(empty)_ | MySQL password |
-| `DB_NAME` | `emontic_ai_db` | MySQL database name |
-| `UPLOAD_DIR` | `uploads` | Directory for storing uploaded images |
-| `MAX_FILE_SIZE_MB` | `5` | Maximum upload file size in megabytes |
-| `MIN_FACE_BOX_PX` | `30` | Minimum face bounding box side in pixels |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated list of allowed origins |
-
-### Frontend Environment Variables
+Configuration is managed via the `backend/.env` file. For advanced settings (like face box thresholds, upload limits, or CORS policies), refer to `backend/.env.example`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VITE_API_URL` | `http://localhost:8000/api` | Backend API base URL |
+| `MODEL_PATH` | `models/emontic_ai.onnx` | Relative path to the compiled ONNX graph |
+| `CONFIDENCE_THRESHOLD` | `0.55` | Classification cutoff point; scores below return "Uncertain" |
+| `DB_HOST` | `localhost` | MySQL host (System falls back to SQLite if unreachable) |
+| `DB_NAME` | `emontic_ai_db` | Target database schema name |
+| `VITE_API_URL` | `http://localhost:8000/api` | API endpoint for the React frontend (set in `frontend/.env`) |
 
 ---
 
@@ -343,11 +395,8 @@ Analyze a base64-encoded webcam frame with TTA enabled and a lower confidence th
 ### `GET /api/history/names`
 Returns all unique person names in the prediction history.
 
-### `GET /api/history/{name}`
-Returns all predictions for a specific person, ordered by most recent.
-
-### `DELETE /api/history/record/{record_id}`
-Deletes a single prediction record and its associated uploaded image file.
+### `GET /api/history/{name}` & `DELETE /api/history/record/{record_id}`
+Retrieve or delete historical predictions and associated metadata.
 
 ### `GET /health`
 Returns server and model status.
@@ -496,7 +545,7 @@ Upload/Webcam Frame
        │
        ▼
  Preprocessing: float32 [0, 255] (model handles internal normalization)
-       │
+│
        ├── Upload path: TTA (original + flipped + brightened) → batch predict → average
        │   └── Confidence threshold: 0.55
        │
@@ -556,7 +605,7 @@ curl http://localhost:8000/health
 
 ## 📄 License
 
-This project is for educational and research purposes. The trained model weights are project-internal and not for redistribution. See the [Model Card](saved_model/MODEL_CARD.md) for detailed model documentation.
+This project is intended for educational and research purposes. The trained model weights are project-internal and not structured for redistribution. Refer to the [Model Card](saved_model/MODEL_CARD.md) for detailed architectural documentation.
 
 ---
 
