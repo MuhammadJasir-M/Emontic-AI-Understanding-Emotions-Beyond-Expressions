@@ -1,5 +1,6 @@
 // src/hooks/useEmotionDetect.js
 // Custom hook that manages the upload → predict → result lifecycle.
+// Now accepts person_name to include in the FormData.
 
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
@@ -23,12 +24,13 @@ export function useEmotionDetect() {
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const detect = useCallback(async (file) => {
+  const detect = useCallback(async (file, personName) => {
     setResult(null);
     setIsLoading(true);
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('person_name', personName || 'Unknown');
 
     const toastId = toast.loading('Analyzing emotion...', { style: TOAST_STYLE });
 

@@ -38,6 +38,7 @@ wheels/
 *.egg
 .pytest_cache/
 backend/models/
+backend/uploads/
 
 # --------------------------
 # Virtual Environments
@@ -55,7 +56,7 @@ venv.bak/
 # Deep Learning / Training
 # ---------------------------
 # Datasets
-data/
+datasets/
 
 # Training Logs & Checkpoints
 training/logs/

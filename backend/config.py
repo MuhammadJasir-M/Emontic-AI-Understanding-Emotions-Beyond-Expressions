@@ -5,14 +5,23 @@
 import os
 
 # ── Model Configuration ──────────────────────────────────────────────────────
-MODEL_PATH = os.getenv("MODEL_PATH", "models/emontic_ai")
-INPUT_SIZE = (224, 224)  # Must match training INPUT_SHAPE (EfficientNetB0)
+MODEL_PATH = os.getenv("MODEL_PATH", "models/emontic_ai.onnx")
+INPUT_SIZE = (224, 224)  # Matches deployed ONNX serving signature (EfficientNetV2S)
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.55"))
 TTA_ENABLED = os.getenv("TTA_ENABLED", "true").lower() == "true"
 
 # ── Emotion Classes ──────────────────────────────────────────────────────────
 # Order MUST match training label order exactly.
 EMOTION_LABELS = ["Angry", "Disgust", "Fear", "Happy", "Neutral", "Sad", "Surprise"]
+
+# ── Database Configuration ───────────────────────────────────────────────────
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "emontic_ai_db")
+
+# ── Upload / Storage ────────────────────────────────────────────────────────
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 
 # ── Upload Constraints ───────────────────────────────────────────────────────
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "5"))

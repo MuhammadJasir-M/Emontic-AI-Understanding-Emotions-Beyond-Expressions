@@ -1,52 +1,72 @@
 # backend/routers/predict.py
-# POST /api/predict — the core emotion recognition endpoint.
-
+import os
+import uuid
 import time
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 
+from config import UPLOAD_DIR
 from services.image_utils import validate_and_load_image
-from services.face_detector import detect_and_crop_face
+from services.face_detector import detect_and_crop_face_fast
 from services.emotion_predictor import predict_emotion, record_request
+from database import save_prediction
 
 logger = logging.getLogger("emontic_ai")
 router = APIRouter()
 
 
 @router.post("/predict", tags=["prediction"])
-async def predict(file: UploadFile = File(...)):
-    """
-    Accept an uploaded image, detect the largest face,
-    predict the emotion, and return structured results.
-    """
+async def predict(
+    file: UploadFile = File(...),
+    person_name: str = Form(...),
+):
+    """High-precision prediction path utilizing full Test-Time Augmentation."""
     start_time = time.perf_counter()
-    file_bytes = await file.read()
 
-    # Step 1: Validate and load image (with EXIF correction)
+    person_name = person_name.strip()
+    if not person_name:
+        raise HTTPException(status_code=422, detail="Person name identifier is required.")
+
+    file_bytes = await file.read()
     image = validate_and_load_image(file_bytes, file.content_type)
 
-    # Step 2: Detect and crop face
     try:
-        cropped_face, bbox = detect_and_crop_face(image)
+        cropped_face, bbox = detect_and_crop_face_fast(image)
     except ValueError as e:
         record_request(no_face=True)
         raise HTTPException(status_code=422, detail=str(e))
 
-    # Step 3: Predict emotion
-    result = predict_emotion(cropped_face)
+    # Explicitly utilize TTA processing for the deep file analysis channel
+    result = predict_emotion(cropped_face, use_tta=True)
 
     elapsed_ms = round((time.perf_counter() - start_time) * 1000, 1)
-    logger.info(
-        f"Prediction: {result['emotion']} ({result['confidence']:.2%}) "
-        f"| bbox={bbox} | latency={elapsed_ms}ms"
-    )
-
-    # Record metrics
+    
     record_request(
         emotion=result["emotion"],
         confidence=result["confidence"],
         latency_ms=elapsed_ms,
     )
+
+    # File storage sequence
+    image_filename = f"{uuid.uuid4().hex}{os.path.splitext(file.filename or '.jpg')[1]}"
+    try:
+        image_path = os.path.join(UPLOAD_DIR, image_filename)
+        with open(image_path, "wb") as f:
+            f.write(file_bytes)
+    except Exception as e:
+        logger.warning(f"File IO persistence failure: {e}")
+        image_filename = ""
+
+    # Database logging task
+    try:
+        save_prediction(
+            person_name=person_name,
+            image_path=image_filename,
+            emotion=result["emotion"],
+            confidence=result["confidence"],
+        )
+    except Exception as e:
+        logger.warning(f"Database transaction failure: {e}")
 
     return {
         "emotion": result["emotion"],
@@ -55,4 +75,5 @@ async def predict(file: UploadFile = File(...)):
         "bbox": bbox,
         "image_size": {"width": image.width, "height": image.height},
         "latency_ms": elapsed_ms,
+        "person_name": person_name,
     }

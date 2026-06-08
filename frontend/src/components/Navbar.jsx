@@ -1,10 +1,20 @@
 // src/components/Navbar.jsx
-// Minimal, glassmorphism top navigation bar.
+// Glassmorphism top navigation with route links and mobile menu.
 
-import { motion } from "framer-motion";
-import { Zap, Github } from "lucide-react";
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Github, Camera, History, Video, Menu, X } from "lucide-react";
+
+const NAV_LINKS = [
+  { to: "/", label: "Image Analysis", icon: Camera },
+  { to: "/history", label: "History", icon: History },
+  { to: "/live", label: "Live Emotion", icon: Video },
+];
 
 export default function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <motion.nav
       className="navbar"
@@ -14,17 +24,12 @@ export default function Navbar() {
     >
       <div
         className="flex items-center justify-between w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 2xl:px-20 py-3"
-        style={{
-          gap: 16,
-        }}
+        style={{ gap: 16 }}
       >
         {/* Brand */}
         <div
           className="flex items-center gap-3"
-          style={{
-            flexShrink: 0,
-            minWidth: "fit-content",
-          }}
+          style={{ flexShrink: 0, minWidth: "fit-content" }}
         >
           <div
             className="flex items-center justify-center"
@@ -33,10 +38,7 @@ export default function Navbar() {
             <img
               src="/Emontic%20AI.png"
               alt="Emontic AI"
-              style={{
-                width: 45,
-                height: 45
-              }}
+              style={{ width: 45, height: 45 }}
             />
           </div>
 
@@ -98,25 +100,41 @@ export default function Navbar() {
             </div>
 
             <span
-              className="text-xs font-medium px-2 py-0.5 rounded-full"
+              className="text-xs font-bold px-2.5 py-0.5 rounded-full hidden sm:inline-flex"
               style={{
-                background: "transparent",
-                color: "var(--accent-violet-light)",
-                border: "1px solid rgba(168, 85, 247, 0.2)",
+                background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(34, 211, 238, 0.15) 100%)",
+                color: "var(--text-primary)",
+                border: "1px solid rgba(34, 211, 238, 0.3)",
                 flexShrink: 0,
-                marginLeft: 0,
-                display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
+                textShadow: "0 0 10px rgba(34, 211, 238, 0.5)",
               }}
             >
-              v1.0
+              v2.5 ArcFace SOTA
             </span>
           </div>
         </div>
 
-        {/* Links */}
-        <div className="flex items-center gap-4">
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/"}
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "nav-link-active" : ""}`
+              }
+            >
+              <Icon size={14} />
+              {label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Right side: GitHub + Mobile toggle */}
+        <div className="flex items-center gap-3">
           <motion.a
             href="https://github.com/MuhammadJasir-M/Emontic-AI-Understanding-Emotions-Beyond-Expressions.git"
             target="_blank"
@@ -165,11 +183,59 @@ export default function Navbar() {
               }}
             >
               <Github size={14} />
-              Source
+              <span className="hidden sm:inline">Source</span>
             </div>
           </motion.a>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "var(--text-secondary)",
+            }}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="md:hidden overflow-hidden"
+            style={{
+              borderTop: "1px solid var(--border-subtle)",
+              background: "rgba(10, 10, 15, 0.95)",
+            }}
+          >
+            <div className="flex flex-col py-2 px-4">
+              {NAV_LINKS.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={to === "/"}
+                  className={({ isActive }) =>
+                    `nav-link-mobile ${isActive ? "nav-link-mobile-active" : ""}`
+                  }
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Icon size={16} />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
